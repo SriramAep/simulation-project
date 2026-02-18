@@ -5,7 +5,8 @@
 #include <chrono>
 #include <thread>
 #include "processor_service.h"
-#include "../observability/metrics.h"
+#include "../observability/metrics/metrics.h"
+#include "../observability/logging/logger.h"
 
 using namespace simulation;
 using namespace grpc;
@@ -65,6 +66,10 @@ private:
 public:
     Status Processor (ServerContext* context, const ProcessorRequest* request, ProcessorResponse* response) {
 
+        auto logger = logging::getLogger("processor");
+        logger->debug("Request received workload={}", request->workload());
+
+        string result_str = "success";
         auto& metrics = Metrics::instance();
 
         metrics.inflight_requests.Increment();
@@ -79,11 +84,14 @@ public:
 
         if ( !result ) {
             metrics.total_failures.Increment();
+            result_str = "failure";
         }
+
+        logger->info("request_id={} workload={} latency_ms={} status={}",
+        request->request_id(), request->workload(), duration.count(), result_str);
 
         response->set_success(result);
         response->set_latency_ms(duration.count());
-        cout << "Successfully processed the request with request_id " << request->request_id() << " in " << duration.count() << " ms."<< endl;
         
         metrics.inflight_requests.Decrement();
 
@@ -91,18 +99,21 @@ public:
     }
 };
 
+namespace processor {
+    void RunServer () {
 
-void RunServer () {
+        auto logger = logging::getLogger("processor");
 
-    string server_address = "0.0.0.0:50051";
-    ProcessorServiceImplementation service;
-    ServerBuilder builder;
+        string server_address = "0.0.0.0:50051";
+        ProcessorServiceImplementation service;
+        ServerBuilder builder;
+    
+        builder.AddListeningPort(server_address, InsecureServerCredentials());
+        builder.RegisterService(&service);
+        unique_ptr<Server> server(builder.BuildAndStart());
 
-    builder.AddListeningPort(server_address, InsecureServerCredentials());
-    builder.RegisterService(&service);
-    unique_ptr<Server> server(builder.BuildAndStart());
-
-    cout << "Server listening on " << server_address << endl;
-
-    server->Wait();
+        logger->info("Server listening on {}", server_address);
+    
+        server->Wait();
+    }
 }

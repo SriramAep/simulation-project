@@ -1,4 +1,6 @@
 
 
 // Function definitions
-void RunServer();
+namespace processor {
+    void RunServer();
+}
