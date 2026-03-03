@@ -1,19 +1,14 @@
 syntax = "proto3";
-
 package simulation;
 
 message ProcessorRequest {
-
     string request_id = 1;
     int32 workload = 2;   
-
 }
 
 message ProcessorResponse {
-
     bool success = 1;
     int32 latency_ms = 2;
-
 }
 
 service ProcessorService {

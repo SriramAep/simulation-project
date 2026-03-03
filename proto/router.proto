@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package simulation;
+
+message RouterRequest {
+    string request_id = 1;
+    int32 workload = 2;
+    int32 fanout = 3;
+    int32 timeout_ms = 4;
+};
+
+message RouterResponse {
+    int32 success = 1;
+    int32 failure = 2;
+    int32 latency_ms = 3;
+};
+
+
+service RouterService {
+    rpc RouteRequest(RouterRequest) returns (RouterResponse);
+}

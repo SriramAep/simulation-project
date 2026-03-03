@@ -1,0 +1,8 @@
+nthFailure    : 5
+failureRate   : 0.8
+latencyMS     : 2000
+cpuMultiplier : 100000
+logLevel      : debug
+failureMode   : NONE
+processorMode : FUNCTIONAL
+timeoutMS     : 500

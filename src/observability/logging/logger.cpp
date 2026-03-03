@@ -14,24 +14,25 @@ namespace logging {
     unordered_map<string, shared_ptr<spdlog::logger>> logger_registry;
     mutex logger_registry_mutex;
 
-    void init() {
+    void init(const string& log_level) {
 
         shared_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
-
-        const char* level_env = getenv("LOG_LEVEL");
-
-        spdlog::level::level_enum level = spdlog::level::info;
         
-        if ( level_env ) {
-            try {
-                level = spdlog::level::from_str(level_env);
-            } catch (...) {
-                level = spdlog::level::info;
-            }
+        set_level(log_level);
+        spdlog::set_pattern(R"({"timestamp":"%Y-%m-%dT%H:%M:%S.%eZ","level":"%l","component":"%n","message":"%v"})");
+    }
+
+    void set_level(const std::string& log_level) {
+
+        spdlog::level::level_enum level;
+
+        try {
+            level = spdlog::level::from_str(log_level);
+        } catch (...) {
+            level = spdlog::level::info;
         }
 
         spdlog::set_level(level);
-        spdlog::set_pattern(R"({"timestamp":"%Y-%m-%dT%H:%M:%S.%eZ","level":"%l","component":"%n","message":"%v"})");
     }
 
     shared_ptr<spdlog::logger> getLogger(const string& component) {
